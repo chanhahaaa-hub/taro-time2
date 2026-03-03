@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍩 Taro Time 🍩</title>
+    <style>
+        :root {
+            --night-sky: linear-gradient(160deg, #1a1c2c 0%, #4a192c 50%, #1e3c72 100%);
+            --liquid-pink: #ff8fab;
+            --glass-white: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--night-sky);
+            background-attachment: fixed;
+            padding: 20px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(50px) saturate(180%);
+            -webkit-backdrop-filter: blur(50px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        h1 { color: white; font-size: 2.2rem; margin: 0; text-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
+        .today-date {
+            color: white; font-size: 1rem; font-weight: 600;
+            opacity: 0.8; margin-top: 5px; letter-spacing: 0.5px;
+        }
+
+        .time-capsule-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 25px 0;
+            cursor: pointer;
+        }
+
+        .time-capsule-btn {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 15px 40px;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            box-shadow: inset 0 4px 12px rgba(255,255,255,0.2);
+        }
+
+        #startInput {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; z-index: 2;
+        }
+
+        .time-display-text {
+            color: white; font-size: 1.5rem; font-weight: 800;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+        .capsule {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 32px;
+            padding: 15px 10px;
+            color: white; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 4px 10px rgba(255,255,255,0.2);
+        }
+
+        .capsule.active {
+            background: var(--liquid-pink);
+            transform: scale(0.96);
+            box-shadow: 0 0 25px rgba(255, 143, 171, 0.6);
+        }
+
+        .custom-input {
+            width: 85%; padding: 14px; margin: 15px 0;
+            border-radius: 25px; border: 1.5px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1); color: white;
+            text-align: center; outline: none;
+        }
+
+        .dur-row { display: flex; gap: 8px; margin-bottom: 20px; }
+        .dur-pill {
+            flex: 1; padding: 12px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2); color: white;
+            font-weight: 800; font-size: 0.8rem; border: none; cursor: pointer;
+        }
+
+        /* --- NO SCROLL SCHEDULE --- */
+        .log-box {
+            background: rgba(0, 0, 0, 0.2); 
+            border-radius: 30px;
+            padding: 15px; 
+            margin-bottom: 15px;
+            height: auto; /* Removed fixed height */
+            overflow: visible; /* Show everything */
+        }
+
+        .log-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 0; 
+            color: white; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            font-size: 0.9rem; 
+        }
+
+        .btn-sleep {
+            background: white; color: #ff5d8f;
+            border-radius: 40px; padding: 18px; width: 100%;
+            font-size: 1.2rem; font-weight: 900;
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: none; cursor: pointer;
+        }
+
+        .bun-bun {
+            width: 38px; height: 32px; background: #ffdae9;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+        }
+        .bun-bun::before, .bun-bun::after {
+            content: ''; position: absolute; top: -10px; width: 9px; height: 20px;
+            background: #ffdae9; border-radius: 10px;
+        }
+        .bun-bun::before { left: 6px; transform: rotate(-12deg); }
+        .bun-bun::after { right: 6px; transform: rotate(12deg); }
+
+        .flower {
+            position: absolute; top: 0px; left: -2px; width: 12px; height: 12px;
+            background: #ff4d94; border-radius: 50%; z-index: 5;
+        }
+        .flower::after {
+            content: ''; position: absolute; top: 4px; left: 4px; width: 4px; height: 4px;
+            background: #ffd700; border-radius: 50%;
+        }
+
+        .face { position: absolute; top: 6px; left: 9px; width: 20px; height: 10px; } 
+        .face::before, .face::after { content: '•'; position: absolute; color: #555; font-size: 14px; top: 0; }
+        .face::before { left: 0; } .face::after { right: 0; }
+        .smile { position: absolute; top: 12px; left: 6px; width: 8px; height: 4px; border-bottom: 2px solid #555; border-radius: 50%; }
+
+        .reset { color: white; font-size: 0.75rem; opacity: 0.4; text-decoration: none; margin-top: 15px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="glass-panel">
+    <h1>🍩 Taro Time 🍩</h1>
+    <div id="todayDate" class="today-date">Today</div>
+    
+    <div class="time-capsule-wrapper">
+        <div class="time-capsule-btn">
+            <span id="timeDisplay" class="time-display-text">08:00 PM</span>
+        </div>
+        <input type="time" id="startInput" value="20:00" onchange="updateTimeDisplay()">
+    </div>
+
+    <div class="grid">
+        <button class="capsule active" onclick="setEv('🏠 Get Home', this)">🏠 Get Home</button>
+        <button class="capsule" onclick="setEv('🚿 Shower', this)">🚿 Shower</button>
+        <button class="capsule" onclick="setEv('🍳 Breakfast', this)">🍳 Breakfast</button>
+        <button class="capsule" onclick="setEv('🥗 Lunch', this)">🥗 Lunch</button>
+        <button class="capsule" onclick="setEv('🍱 Dinner', this)">🍱 Dinner</button>
+        <button class="capsule" onclick="setEv('📚 Study', this)">📚 Study</button>
+        <button class="capsule" onclick="setEv('🎮 Free Time', this)">🎮 Free Time</button>
+        <button class="capsule" onclick="setEv('🧘 Stretch', this)">🧘 Stretch</button>
+        <button class="capsule" onclick="setEv('💪 Gym', this)">💪 Gym</button>
+        <button class="capsule" onclick="setEv('🌙 Wind Down', this)">🌙 Wind Down</button>
+    </div>
+
+    <input type="text" id="cust" class="custom-input" placeholder="✨ Custom activity..." oninput="clearSel()">
+
+    <div class="dur-row">
+        <button class="dur-pill" onclick="add(15)">15m</button>
+        <button class="dur-pill" onclick="add(30)">30m</button>
+        <button class="dur-pill" onclick="add(45)">45m</button>
+        <button class="dur-pill" onclick="add(60)">1h</button>
+    </div>
+
+    <div class="log-box" id="log">
+        </div>
+
+    <button class="btn-sleep" onclick="sleep()">
+        <div class="bun-bun">
+            <div class="flower"></div>
+            <div class="face"><div class="smile"></div></div>
+        </div>
+        Sleep with Bun Bun
+    </button>
+    
+    <a href="#" class="reset" onclick="location.reload()">Reset Day</a>
+</div>
+
+<script>
+    let current = '🏠 Get Home';
+    let track = null;
+
+    const d = new Date();
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    document.getElementById('todayDate').innerText = d.toLocaleDateString('en-US', options);
+
+    function formatTime(h, m) {
+        let period = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        m = m < 10 ? '0' + m : m;
+        return `${h}:${m} ${period}`;
+    }
+
+    function updateTimeDisplay() {
+        const val = document.getElementById('startInput').value;
+        const [h, m] = val.split(':');
+        document.getElementById('timeDisplay').innerText = formatTime(parseInt(h), parseInt(m));
+        track = null;
+    }
+
+    function setEv(n, b) {
+        current = n;
+        document.getElementById('cust').value = '';
+        document.querySelectorAll('.capsule').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+    }
+
+    function clearSel() {
+        document.querySelectorAll('.capsule').forEach(x => x.classList.remove('active'));
+    }
+
+    function add(m) {
+        if (!track) {
+            const [h, min] = document.getElementById('startInput').value.split(':');
+            track = new Date(); track.setHours(h, min, 0);
+        }
+        let n = document.getElementById('cust').value || current;
+        let s = formatTime(track.getHours(), track.getMinutes());
+        track = new Date(track.getTime() + m * 60000);
+        let e = formatTime(track.getHours(), track.getMinutes());
+        
+        document.getElementById('log').innerHTML += `<div class="log-item"><b>${s} - ${e}</b> <span>${n}</span></div>`;
+    }
+
+    function sleep() {
+        if (!track) return;
+        let s = formatTime(track.getHours(), track.getMinutes());
+        document.getElementById('log').innerHTML += `<div class="log-item" style="color:white; border-bottom: 1.5px solid #ffdae9;"><b>${s} ~ 💤</b> <span>🌸 Sleep with Bun Bun</span></div>`;
+    }
+
+    updateTimeDisplay();
+</script>
+</body>
+</html>
